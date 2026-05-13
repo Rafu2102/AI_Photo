@@ -479,8 +479,8 @@ export default function AdminPage() {
                         </div>
                         <div className="w-full md:w-2/3 space-y-6">
                           <div>
-                            <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-3">專區主標題</label>
-                            <input type="text" required value={aboutTitle} onChange={e => setAboutTitle(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-white/30 outline-none transition-colors" />
+                            <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-3">專區主標題 (支援換行)</label>
+                            <textarea required value={aboutTitle} onChange={e => setAboutTitle(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white focus:border-white/30 outline-none transition-colors min-h-[100px] resize-y" />
                           </div>
                           <div>
                             <label className="block text-xs uppercase tracking-widest text-neutral-500 mb-3">理念介紹內文</label>

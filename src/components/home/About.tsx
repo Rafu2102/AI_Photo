@@ -31,14 +31,18 @@ export default function About() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-          className="space-y-8"
+          className="flex flex-col justify-center"
         >
-          <h2 className="text-4xl md:text-5xl font-light tracking-wide text-white whitespace-pre-line">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-wider text-white leading-tight mb-8 whitespace-pre-line">
             {settings.aboutTitle}
           </h2>
-          <div className="w-12 h-1 bg-white/20" />
-          <div className="space-y-6 text-neutral-400 leading-relaxed font-light text-lg whitespace-pre-line">
-            {settings.aboutDescription}
+          
+          <div className="w-16 h-[1px] bg-white/30 mb-10" />
+          
+          <div className="space-y-8 text-neutral-300 leading-[2.2] tracking-widest font-light text-lg md:text-xl">
+            {settings.aboutDescription.split('\n').filter(p => p.trim() !== '').map((paragraph, idx) => (
+              <p key={idx}>{paragraph}</p>
+            ))}
           </div>
         </motion.div>
       </div>
