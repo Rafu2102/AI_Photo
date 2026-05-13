@@ -1,0 +1,50 @@
+export const DUMMY_PHOTOS = [
+  {
+    id: "1",
+    url: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=100&w=2500&auto=format&fit=crop",
+    title: "森林樹冠",
+    location: "太平洋西北地區",
+    exif: "DJI Mavic 3 • ISO 100 • 1/200s • f/2.8",
+    tags: ["自然"],
+  },
+  {
+    id: "2",
+    url: "https://images.unsplash.com/photo-1511884642898-4c92249e20b6?q=100&w=2500&auto=format&fit=crop",
+    title: "海岸公路",
+    location: "美國加州",
+    exif: "DJI Inspire 2 • ISO 200 • 1/500s • f/4",
+    tags: ["城市", "自然"],
+  },
+  {
+    id: "3",
+    url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=100&w=2500&auto=format&fit=crop",
+    title: "群山之巔",
+    location: "瑞士阿爾卑斯山",
+    exif: "DJI Air 2S • ISO 100 • 1/1000s • f/2.8",
+    tags: ["自然", "電影感"],
+  },
+  {
+    id: "4",
+    url: "https://images.unsplash.com/photo-1444464666168-49b626f860d5?q=100&w=2500&auto=format&fit=crop",
+    title: "河流三角洲",
+    location: "冰島",
+    exif: "Hasselblad L1D-20c • ISO 400 • 1/120s • f/5.6",
+    tags: ["自然"],
+  },
+  {
+    id: "5",
+    url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=100&w=2500&auto=format&fit=crop",
+    title: "秋色山谷",
+    location: "美國佛蒙特州",
+    exif: "DJI Mavic 3 • ISO 100 • 1/250s • f/2.8",
+    tags: ["自然", "底片風"],
+  },
+  {
+    id: "6",
+    url: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=100&w=2500&auto=format&fit=crop",
+    title: "城市網格",
+    location: "日本東京",
+    exif: "DJI Mavic 3 Pro • ISO 800 • 1/60s • f/2.8",
+    tags: ["城市", "夜景"],
+  }
+];
