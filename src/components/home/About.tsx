@@ -3,11 +3,15 @@
 import { motion } from "framer-motion";
 import { usePhotos } from "@/context/PhotoContext";
 
-export default function About() {
+interface AboutProps {
+  isMobile?: boolean;
+}
+
+export default function About({ isMobile }: AboutProps) {
   const { settings } = usePhotos();
 
   return (
-    <section id="about" className="py-24 px-6 max-w-7xl mx-auto min-h-screen flex items-center">
+    <section id="about" className={`${isMobile ? 'py-16 min-h-[100svh]' : 'py-24 min-h-screen'} px-6 max-w-7xl mx-auto flex items-center`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         {/* Image Side */}
         <motion.div

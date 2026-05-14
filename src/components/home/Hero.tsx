@@ -8,7 +8,11 @@ import { usePhotos } from "@/context/PhotoContext";
 
 import Image from "next/image";
 
-export default function Hero() {
+interface HeroProps {
+  isMobile?: boolean;
+}
+
+export default function Hero({ isMobile }: HeroProps) {
   const { settings } = usePhotos();
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -22,7 +26,7 @@ export default function Hero() {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black"
+      className={`relative w-full overflow-hidden flex items-center justify-center bg-black ${isMobile ? 'min-h-[100svh]' : 'h-screen'}`}
     >
       {/* Dynamic Background Image with Parallax */}
       <motion.div

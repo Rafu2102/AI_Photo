@@ -7,7 +7,13 @@ import { usePhotos } from "@/context/PhotoContext";
 
 const ALL_TAGS = ["全部", "自然", "城市", "夜景", "電影感", "底片風"];
 
-export default function Gallery() {
+import Image from "next/image";
+
+interface GalleryProps {
+  isMobile?: boolean;
+}
+
+export default function Gallery({ isMobile }: GalleryProps) {
   const { photos } = usePhotos();
   const [activeTag, setActiveTag] = useState("全部");
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
@@ -37,15 +43,15 @@ export default function Gallery() {
 
       {/* Masonry Grid */}
       <motion.div 
-        layout
-        className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6"
+        layout={!isMobile}
+        className="relative columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6"
       >
         <AnimatePresence>
           {filteredPhotos.map((photo) => {
             const originalIndex = photos.findIndex((p) => p.id === photo.id);
             return (
               <motion.div
-                layout
+                layout={!isMobile}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
@@ -54,12 +60,26 @@ export default function Gallery() {
                 className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-md bg-neutral-900"
                 onClick={() => setSelectedPhotoIndex(originalIndex)}
               >
-                <img
-                  src={photo.url}
-                  alt={photo.title}
-                  loading="lazy"
-                  className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
+                {isMobile ? (
+                  <Image
+                    src={photo.url}
+                    alt={photo.title}
+                    width={800}
+                    height={800}
+                    quality={85}
+                    style={{ width: "100%", height: "auto" }}
+                    sizes="100vw"
+                    className="transition-transform duration-700 ease-out group-hover:scale-105"
+                    unoptimized={photo.url.includes("unsplash.com")}
+                  />
+                ) : (
+                  <img
+                    src={photo.url}
+                    alt={photo.title}
+                    loading="lazy"
+                    className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                )}
                 
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
@@ -84,6 +104,7 @@ export default function Gallery() {
             currentIndex={selectedPhotoIndex}
             onClose={() => setSelectedPhotoIndex(null)}
             onNavigate={(newIndex) => setSelectedPhotoIndex(newIndex)}
+            isMobile={isMobile}
           />
         )}
       </AnimatePresence>

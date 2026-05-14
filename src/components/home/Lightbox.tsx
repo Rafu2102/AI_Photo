@@ -18,9 +18,10 @@ interface LightboxProps {
   currentIndex: number;
   onClose: () => void;
   onNavigate: (index: number) => void;
+  isMobile?: boolean;
 }
 
-export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: LightboxProps) {
+export default function Lightbox({ photos, currentIndex, onClose, onNavigate, isMobile }: LightboxProps) {
   const photo = photos[currentIndex];
 
   const handlePrevious = useCallback(() => {
@@ -83,16 +84,35 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate }: 
 
       {/* Image Container */}
       <div className="relative w-full h-full flex flex-col items-center justify-center p-4 md:p-12" onClick={onClose}>
-        <motion.img
-          key={photo.id}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          src={photo.url}
-          alt={photo.title}
-          className="max-w-full max-h-[85vh] object-contain shadow-2xl"
-          onClick={(e) => e.stopPropagation()} // Prevent close on image click
-        />
+        {isMobile ? (
+          <motion.div
+            key={photo.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="relative w-full h-[70vh] flex items-center justify-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={photo.url}
+              alt={photo.title}
+              fill
+              className="object-contain"
+              unoptimized={photo.url.includes("unsplash.com")}
+            />
+          </motion.div>
+        ) : (
+          <motion.img
+            key={photo.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            src={photo.url}
+            alt={photo.title}
+            className="max-w-full max-h-[85vh] object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
         
         {/* EXIF Info overlay (bottom) */}
         <motion.div 
