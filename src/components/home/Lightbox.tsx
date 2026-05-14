@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import Image from "next/image";
 
 interface Photo {
   id: string;
