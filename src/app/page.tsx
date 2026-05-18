@@ -4,6 +4,7 @@ import Hero from "@/components/home/Hero";
 import Gallery from "@/components/home/Gallery";
 import About from "@/components/home/About";
 import BackToTop from "@/components/common/BackToTop";
+import Footer from "@/components/layout/Footer";
 
 export default async function Home() {
   const headersList = await headers();
@@ -19,10 +20,7 @@ export default async function Home() {
       
       <BackToTop />
       
-      {/* Minimal Footer */}
-      <footer className="py-12 border-t border-white/5 text-center text-neutral-500 text-sm tracking-widest uppercase">
-        © {new Date().getFullYear()} Horizon Aerial. All Rights Reserved.
-      </footer>
+      <Footer />
     </main>
   );
 }

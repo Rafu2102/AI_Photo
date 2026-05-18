@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { DUMMY_PHOTOS as INITIAL_PHOTOS } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -11,6 +11,7 @@ export interface Photo {
   location: string;
   exif: string;
   tags: string[];
+  views?: number;
 }
 
 interface Settings {
@@ -24,10 +25,12 @@ interface Settings {
 interface PhotoContextType {
   photos: Photo[];
   settings: Settings;
+  siteViews: number;
   addPhoto: (photo: Omit<Photo, "id">) => Promise<void>;
   updatePhoto: (id: string, updated: Partial<Photo>) => Promise<void>;
   deletePhoto: (id: string) => Promise<void>;
   updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
+  incrementPhotoViews: (id: string) => Promise<void>;
 }
 
 const PhotoContext = createContext<PhotoContextType | undefined>(undefined);
@@ -42,6 +45,7 @@ const DEFAULT_SETTINGS: Settings = {
 export function PhotoProvider({ children }: { children: ReactNode }) {
   const [photos, setPhotos] = useState<Photo[]>(INITIAL_PHOTOS);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [siteViews, setSiteViews] = useState<number>(0);
 
   const fetchData = async () => {
     try {
@@ -53,10 +57,19 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
 
       if (photosError) throw photosError;
       if (photosData) {
-        setPhotos(photosData);
+        const mappedPhotos = photosData.map((p: any) => {
+          const localViews = typeof window !== 'undefined' ? localStorage.getItem(`photo_views_${p.id}`) : null;
+          return {
+            ...p,
+            views: p.views !== undefined && p.views !== null 
+              ? p.views 
+              : (localViews ? parseInt(localViews, 10) : 0)
+          };
+        });
+        setPhotos(mappedPhotos);
       }
 
-      // 獲取設定
+      // 獲取全站設定
       const { data: settingsData, error: settingsError } = await supabase
         .from("settings")
         .select("*")
@@ -73,14 +86,83 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
           aboutDescription: settingsData.about_description,
         });
       }
+
+      // 獲取全站流量數
+      const { data: statsData, error: statsError } = await supabase
+        .from("site_stats")
+        .select("views")
+        .eq("id", 1)
+        .single();
+
+      if (statsError) {
+        // 資料庫表未就緒，使用 LocalStorage
+        if (typeof window !== 'undefined') {
+          const localViews = localStorage.getItem("site_views");
+          if (localViews) {
+            setSiteViews(parseInt(localViews, 10));
+          } else {
+            const initialMock = 0;
+            setSiteViews(initialMock);
+            localStorage.setItem("site_views", initialMock.toString());
+          }
+        }
+      } else if (statsData) {
+        setSiteViews(statsData.views);
+      }
     } catch (error) {
       console.warn("無法連接 Supabase 或發生錯誤", error);
-      setPhotos([]);
+      // 完全斷網容錯，加載初始 Dummy Photos
+      if (typeof window !== 'undefined') {
+        const localViews = localStorage.getItem("site_views") || "0";
+        setSiteViews(parseInt(localViews, 10));
+      }
+      setPhotos(INITIAL_PHOTOS.map(p => {
+        const localViews = typeof window !== 'undefined' ? localStorage.getItem(`photo_views_${p.id}`) : null;
+        return {
+          ...p,
+          views: localViews ? parseInt(localViews, 10) : 0
+        };
+      }));
+    }
+  };
+
+  const incrementSiteViews = async () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const hasCounted = sessionStorage.getItem("site_counted");
+      if (hasCounted) return;
+
+      const { data: currentStats, error: fetchError } = await supabase
+        .from("site_stats")
+        .select("views")
+        .eq("id", 1)
+        .single();
+
+      const newViews = ((currentStats?.views || siteViews || 0) as number) + 1;
+      
+      const { error: upsertError } = await supabase
+        .from("site_stats")
+        .upsert({ id: 1, views: newViews });
+
+      if (upsertError) throw upsertError;
+
+      setSiteViews(newViews);
+      localStorage.setItem("site_views", newViews.toString());
+      sessionStorage.setItem("site_counted", "true");
+    } catch (e) {
+      console.warn("全站流量寫入資料庫失敗，改用本機計數器容錯:", e);
+      const localViews = localStorage.getItem("site_views") || "0";
+      const newLocalViews = parseInt(localViews, 10) + 1;
+      localStorage.setItem("site_views", newLocalViews.toString());
+      setSiteViews(newLocalViews);
+      sessionStorage.setItem("site_counted", "true");
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData().then(() => {
+      incrementSiteViews();
+    });
   }, []);
 
   const addPhoto = async (photo: Omit<Photo, "id">) => {
@@ -150,8 +232,51 @@ export function PhotoProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const incrementPhotoViews = useCallback(async (id: string) => {
+    if (typeof window === 'undefined') return;
+    
+    // 防止單次 session 內重複點開灌水（必須放在最頂端阻擋！）
+    const photoCountedKey = `photo_counted_${id}`;
+    if (sessionStorage.getItem(photoCountedKey)) return;
+
+    // 1. 樂觀 UI 更新，確保前台立刻有反應
+    setPhotos((prevPhotos) =>
+      prevPhotos.map((p) => (p.id === id ? { ...p, views: (p.views || 0) + 1 } : p))
+    );
+
+    try {
+      // 2. 直接向 Supabase 查詢該相片最新的真實點閱數，避免依賴 photos React 狀態以打破依賴死循環
+      const { data, error: fetchError } = await supabase
+        .from("photos")
+        .select("views")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const currentViews = data?.views || 0;
+      const newViews = currentViews + 1;
+
+      const { error: updateError } = await supabase
+        .from("photos")
+        .update({ views: newViews })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+      
+      localStorage.setItem(`photo_views_${id}`, newViews.toString());
+      sessionStorage.setItem(photoCountedKey, "true");
+    } catch (e) {
+      console.warn("更新照片觀看數失敗，採用 LocalStorage 容錯:", e);
+      const localPhotoViews = localStorage.getItem(`photo_views_${id}`) || "0";
+      const newLocalPhotoViews = parseInt(localPhotoViews, 10) + 1;
+      localStorage.setItem(`photo_views_${id}`, newLocalPhotoViews.toString());
+      sessionStorage.setItem(photoCountedKey, "true");
+    }
+  }, []);
+
   return (
-    <PhotoContext.Provider value={{ photos, settings, addPhoto, updatePhoto, deletePhoto, updateSettings }}>
+    <PhotoContext.Provider value={{ photos, settings, siteViews, addPhoto, updatePhoto, deletePhoto, updateSettings, incrementPhotoViews }}>
       {children}
     </PhotoContext.Provider>
   );

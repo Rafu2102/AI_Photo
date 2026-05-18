@@ -2,8 +2,9 @@
 
 import { useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Info, Eye } from "lucide-react";
 import Image from "next/image";
+import { usePhotos } from "@/context/PhotoContext";
 
 interface Photo {
   id: string;
@@ -12,6 +13,7 @@ interface Photo {
   location: string;
   exif: string;
   tags: string[];
+  views?: number;
 }
 
 interface LightboxProps {
@@ -24,6 +26,14 @@ interface LightboxProps {
 
 export default function Lightbox({ photos, currentIndex, onClose, onNavigate, isMobile }: LightboxProps) {
   const photo = photos[currentIndex];
+  const { incrementPhotoViews } = usePhotos();
+
+  // 自動在照片載入/切換時累加計數
+  useEffect(() => {
+    if (photo?.id) {
+      incrementPhotoViews(photo.id);
+    }
+  }, [photo?.id, incrementPhotoViews]);
 
   const handlePrevious = useCallback(() => {
     onNavigate(currentIndex === 0 ? photos.length - 1 : currentIndex - 1);
@@ -129,6 +139,21 @@ export default function Lightbox({ photos, currentIndex, onClose, onNavigate, is
               <Info className="w-3 h-3" />
               <span>{photo.exif}</span>
             </div>
+          </div>
+        </motion.div>
+
+        {/* View Count overlay (bottom right) */}
+        <motion.div
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="absolute bottom-6 right-6 md:bottom-12 md:right-12 z-50 pointer-events-auto"
+        >
+          <div className="glass-card px-4 py-2.5 rounded-full flex items-center gap-2 bg-neutral-900/60 border border-white/10 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-white/20">
+            <Eye className="w-3.5 h-3.5 text-neutral-400 animate-pulse" />
+            <span className="text-[11px] text-neutral-300 font-light tracking-wider">
+              <span className="tabular-nums font-semibold text-white">{(photo.views || 0).toLocaleString()}</span> 瀏覽
+            </span>
           </div>
         </motion.div>
       </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lightbox from "./Lightbox";
 import { usePhotos } from "@/context/PhotoContext";
+import { Eye } from "lucide-react";
 
 const ALL_TAGS = ["全部", "自然", "城市", "夜景", "電影感", "底片風"];
 
@@ -86,9 +87,15 @@ export default function Gallery({ isMobile }: GalleryProps) {
                   <h3 className="text-white text-xl font-medium tracking-wide mb-1 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                     {photo.title}
                   </h3>
-                  <p className="text-neutral-300 text-sm tracking-wider translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
-                    {photo.location}
-                  </p>
+                  <div className="flex justify-between items-center w-full translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                    <p className="text-neutral-300 text-sm tracking-wider">
+                      {photo.location}
+                    </p>
+                    <span className="flex items-center gap-1.5 text-[10px] text-neutral-400 tracking-wider bg-neutral-950/60 backdrop-blur-md py-1 px-2.5 rounded-full border border-white/5 shadow-lg">
+                      <Eye className="w-3 h-3 text-neutral-400 animate-pulse" />
+                      <span className="tabular-nums font-semibold">{(photo.views || 0).toLocaleString()}</span>
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             );
