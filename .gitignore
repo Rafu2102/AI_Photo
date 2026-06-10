@@ -41,6 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Agent and temporary docs
+.agent/
 AGENTS.md
 CLAUDE.md
 Walkthrough.md
